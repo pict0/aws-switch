@@ -1,5 +1,9 @@
 # AWS Switch
 
+[![CI](https://github.com/pict0/aws-switch/actions/workflows/ci.yml/badge.svg)](https://github.com/pict0/aws-switch/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/pict0/aws-switch/badge)](https://scorecard.dev/viewer/?uri=github.com/pict0/aws-switch)
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+
 A macOS menu bar app that switches the AWS profile for **every terminal at once**.
 
 ## How it works
@@ -30,23 +34,26 @@ AWS Switch is not affiliated with or endorsed by Amazon Web Services or The Linu
 
 ## Install
 
+Download `AWSSwitch-<version>.pkg` from the [latest release](https://github.com/pict0/aws-switch/releases/latest). It's a universal build for Apple silicon and Intel Macs, macOS 14 or later.
+
+The package is unsigned, so Gatekeeper blocks it the first time: right-click it and choose Open, or allow it in System Settings → Privacy & Security. Each release has a build-provenance attestation, so you can check it was built by this repo's release workflow:
+
+```sh
+gh attestation verify AWSSwitch-<version>.pkg --repo pict0/aws-switch
+```
+
+The package installs `/Applications/AWS Switch.app` and `/usr/local/share/aws-switch/aws-switch.zsh`, then appends
+`source /usr/local/share/aws-switch/aws-switch.zsh` to the logged-in user's `~/.zshrc` (backing it up to
+`~/.zshrc.bak-aws-switch-<timestamp>` first). It skips this if `.zshrc` already sources an
+`aws-switch.zsh`. Open a new terminal afterwards.
+
+### Build from source
+
 ```sh
 swift test                      # run the core tests
 scripts/bundle.sh --install     # build, sign ad hoc, copy to ~/Applications
-open ~/Applications/AWS\ Switch.app
+scripts/package.sh              # or build the installer: build/AWSSwitch-<version>.pkg
 ```
-
-### Installer package
-
-```sh
-scripts/package.sh              # → build/AWSSwitch-<version>.pkg (unsigned)
-```
-
-Installs `/Applications/AWS Switch.app` and `/usr/local/share/aws-switch/aws-switch.zsh`, then appends
-`source /usr/local/share/aws-switch/aws-switch.zsh` to the logged-in user's `~/.zshrc` (backing it up to
-`~/.zshrc.bak-aws-switch-<timestamp>` first). It skips this if `.zshrc` already sources an
-`aws-switch.zsh`. Open a new terminal afterwards. The package is unsigned: on another Mac, right-click it
-and choose Open, or allow it in System Settings → Privacy & Security.
 
 ### Shell integration
 
@@ -58,7 +65,7 @@ source ~/aws-switch/shell/aws-switch.zsh
 
 ## Development
 
-Open `Package.swift` in Xcode, or use `swift build` / `swift run AWSSwitch`. Launch at login only works from the `.app` bundle.
+See [CONTRIBUTING.md](CONTRIBUTING.md). Open `Package.swift` in Xcode, or use `swift build` / `swift run AWSSwitch`. Launch at login only works from the `.app` bundle.
 
 ## Licence
 

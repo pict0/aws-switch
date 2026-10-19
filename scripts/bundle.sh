@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Builds a release .app bundle and ad-hoc signs it with the hardened runtime.
+# Builds a universal (arm64 + x86_64) release .app bundle and ad-hoc signs it with the hardened runtime.
 # Usage: scripts/bundle.sh [--install]   (--install copies it to ~/Applications)
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-swift build -c release
+swift build -c release --arch arm64 --arch x86_64
 
 app="build/AWS Switch.app"
 rm -rf "$app"
 mkdir -p "$app/Contents/MacOS"
-cp "$(swift build -c release --show-bin-path)/AWSSwitch" "$app/Contents/MacOS/"
+cp "$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/AWSSwitch" "$app/Contents/MacOS/"
 cp Resources/Info.plist "$app/Contents/"
 
 codesign --force --options runtime --sign - "$app"
