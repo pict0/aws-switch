@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit is an advisory reviewer: it comments, it never approves.
+language: en-GB
+
+reviews:
+  profile: chill
+  request_changes_workflow: false # true would let CodeRabbit approve PRs
+  high_level_summary: true
+  collapse_walkthrough: true
+  poem: false
+  in_progress_fortune: false
+  sequence_diagrams: false
+  suggested_reviewers: false # single maintainer
+  estimate_code_review_effort: false
+  auto_review:
+    enabled: true
+    drafts: false
+    ignore_usernames: # release-please and version bumps
+      - github-actions[bot]
+      - dependabot[bot]
+  path_instructions:
+    - path: "Sources/AWSSwitchCore/**"
+      instructions: >-
+        Security-sensitive parsing of ~/.aws/config, the SSO cache and kubectl output. Profile
+        names must stay allow-listed ([A-Za-z0-9._-]) before reaching a shell or file. Never decode
+        SSO token fields; only startUrl and expiresAt may be read.
+    - path: "shell/**"
+      instructions: >-
+        zsh sourced into every interactive shell and run at each prompt: flag anything that could
+        execute content from the context file, hang the prompt, or slow it down.
+    - path: "Tests/**"
+      instructions: >-
+        Fixtures must use placeholder profile names and account IDs (acme-production,
+        111111111111), never real ones.
+    - path: ".github/workflows/**"
+      instructions: >-
+        Actions must be pinned to full commit SHAs, permissions kept minimal per job, and untrusted
+        input (PR titles, branch names) passed through env, never interpolated into run scripts.
+
+chat:
+  auto_reply: true
