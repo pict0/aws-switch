@@ -1,0 +1,26 @@
+#!/bin/sh
+# Installer post-install: adds the AWS Switch shell hook to the logged-in user's ~/.zshrc.
+# Installer runs this as root, so every write in the user's home happens as that user
+# (root never follows a user-controlled path or symlink). It never fails the install.
+
+line='source /usr/local/share/aws-switch/aws-switch.zsh'
+
+# Only for installs onto the boot volume.
+[ "$3" = "/" ] || exit 0
+
+user=$(/usr/bin/stat -f%Su /dev/console)
+case "$user" in ""|root|loginwindow|_mbsetupuser) exit 0 ;; esac
+home=$(/usr/bin/dscl . -read "/Users/$user" NFSHomeDirectory 2>/dev/null | /usr/bin/awk '{print $2}')
+[ -d "$home" ] || exit 0
+
+cd / || exit 0
+/usr/bin/sudo -u "$user" /bin/sh -s "$home/.zshrc" "$line" <<'EOF' || true
+rc=$1; line=$2
+# Already hooked, including a source from a repo checkout: leave it alone.
+if [ -f "$rc" ] && /usr/bin/grep -q 'aws-switch\.zsh' "$rc"; then exit 0; fi
+if [ -e "$rc" ]; then
+  /bin/cp -p "$rc" "$rc.bak-aws-switch-$(/bin/date +%Y%m%d%H%M%S)" || exit 1
+fi
+printf '\n# AWS Switch: sets AWS_PROFILE from the menu bar app\n%s\n' "$line" >> "$rc"
+EOF
+exit 0
