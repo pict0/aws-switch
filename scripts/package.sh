@@ -30,7 +30,8 @@ codesign --verify --strict "$staging/Applications/AWS Switch.app"
 # Without this, Installer "upgrades" any existing copy of the bundle wherever it lives
 # (e.g. ~/Applications) instead of installing to /Applications.
 pkgbuild --analyze --root "$staging" "$components"
-/usr/libexec/PlistBuddy -c "Add :0:BundleIsRelocatable bool false" "$components"
+/usr/libexec/PlistBuddy -c "Set :0:BundleIsRelocatable false" "$components" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Add :0:BundleIsRelocatable bool false" "$components"
 
 pkgbuild \
   --root "$staging" \

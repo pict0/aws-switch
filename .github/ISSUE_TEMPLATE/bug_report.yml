@@ -1,0 +1,42 @@
+name: Bug report
+description: Something isn't working
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Don't paste real `~/.aws/config` or `~/.kube/config` contents, account IDs or SSO cache files.** Use placeholder names like `acme-production`.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Profiles named `acme-dev` and `acme-production`
+        2. Switch to `acme-production` from the menu
+        3. ...
+  - type: input
+    id: version
+    attributes:
+      label: AWS Switch version
+      description: From About AWS Switch
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines
+      description: From `~/Library/Logs/AWSSwitch/switch.log`, redacted.
+      render: text
