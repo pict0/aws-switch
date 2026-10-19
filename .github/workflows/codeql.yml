@@ -1,9 +1,18 @@
-name: CodeQL
+name: CodeQL (Swift)
+
+# Swift extraction indexes the imported Apple SDKs and takes ~15 minutes, so PRs only run it
+# when Swift sources change. main and the weekly schedule always run it.
 
 on:
   push:
     branches: [main]
   pull_request:
+    paths:
+      - "Sources/**"
+      - "Tests/**"
+      - "Package.swift"
+      - "Package.resolved"
+      - ".github/workflows/codeql.yml"
   schedule:
     - cron: "23 4 * * 1"
   workflow_dispatch:
@@ -12,34 +21,23 @@ permissions: {}
 
 jobs:
   analyse:
-    name: Analyse (${{ matrix.language }})
-    runs-on: ${{ matrix.runner }}
+    name: Analyse (swift)
+    runs-on: macos-26
     timeout-minutes: 45
     permissions:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - language: swift
-            runner: macos-26
-            build-mode: manual
-          - language: actions
-            runner: ubuntu-latest
-            build-mode: none
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
-          languages: ${{ matrix.language }}
-          build-mode: ${{ matrix.build-mode }}
+          languages: swift
+          build-mode: manual
           queries: security-extended
-      - if: matrix.build-mode == 'manual'
-        run: swift build
+      - run: swift build
       - uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
-          category: /language:${{ matrix.language }}
+          category: /language:swift
