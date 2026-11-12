@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/pict0/aws-switch/compare/v0.4.0...v0.5.0) (2026-11-12)
+
+
+### Features
+
+* **menu:** show menu item icons on macOS 27 and add Databricks pill to the menu bar [no-ticket] ([#13](https://github.com/pict0/aws-switch/issues/13)) ([fea24d1](https://github.com/pict0/aws-switch/commit/fea24d16d813268414e76d8306ad149946ff39d5))
+
 ## [0.4.0](https://github.com/pict0/aws-switch/compare/v0.3.1...v0.4.0) (2026-11-12)
 
 
