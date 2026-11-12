@@ -83,7 +83,7 @@ Tiers are inferred from whole tokens in the profile name, split on `-`, `_` and 
 
 | Tier | Menu symbol | Matching name tokens | Confirmation |
 |---|---|---|---|
-| **Production** | Red warning triangle, plus a red menu bar pill | `prod`, `production`, `prd` | ✅ Always |
+| **Production** | Red warning triangle, plus a red menu bar pill (the Databricks profile gets its own pill beside the AWS one) | `prod`, `production`, `prd` | ✅ Always |
 | **Pre-production** | Half-filled circle | `staging`, `stage`, `stg`, `uat`, `preprod`, `pre-prod`, `dev`, `development`, `test`, `qa`, `sandbox`, `sbx` | — |
 | **Shared** | Empty circle | anything else | — |
 

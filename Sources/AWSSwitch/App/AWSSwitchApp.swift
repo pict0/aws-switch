@@ -5,24 +5,25 @@ import SwiftUI
 struct AWSSwitchApp: App {
     @State private var model = AppModel()
 
+    init() {
+        MenuItemImages.install()
+        #if DEBUG
+        DebugMenu.openIfRequested()
+        DebugMenu.dumpLabelIfRequested()
+        #endif
+    }
+
     var body: some Scene {
         MenuBarExtra {
             MenuContent(model: model)
         } label: {
-            // The badge is a bitmap, so VoiceOver needs the profile spelled out.
-            Image(nsImage: badge)
-                .accessibilityLabel(model.current.map { "AWS profile \($0)" } ?? "No AWS profile")
+            MenuBarLabel(
+                aws: model.current, awsTier: model.currentTier,
+                databricks: model.databricksCurrent, style: model.menuBarStyle)
         }
 
         Settings {
             SettingsView(model: model)
-        }
-    }
-
-    private var badge: NSImage {
-        switch model.menuBarStyle {
-        case .badge: TierImages.badge(profile: model.current, tier: model.currentTier)
-        case .compact: TierImages.compactBadge(tier: model.currentTier)
         }
     }
 }

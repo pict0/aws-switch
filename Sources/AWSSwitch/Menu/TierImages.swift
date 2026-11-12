@@ -9,10 +9,19 @@ import SwiftUI
 enum TierImages {
     static func badge(profile: String?, tier: EnvironmentTier?) -> NSImage {
         let tier = tier ?? .shared
+        return pill(symbol: profile == nil ? "cloud" : tier.symbol, name: profile ?? "No AWS profile", tier: tier)
+    }
+
+    /// The Databricks profile's pill, shown beside the AWS one: same style, no cloud placeholder.
+    static func databricksBadge(profile: String, tier: EnvironmentTier) -> NSImage {
+        pill(symbol: tier.symbol, name: profile, tier: tier)
+    }
+
+    private static func pill(symbol: String, name: String, tier: EnvironmentTier) -> NSImage {
         let content = HStack(spacing: 4) {
-            Image(systemName: profile == nil ? "cloud" : tier.symbol)
+            Image(systemName: symbol)
                 .font(.system(size: 11, weight: tier.isProduction ? .bold : .medium))
-            Text(profile ?? "No AWS profile")
+            Text(name)
                 .font(.system(size: 12, weight: tier.isProduction ? .semibold : .medium))
         }
         guard tier.isProduction else {
