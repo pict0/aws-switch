@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/pict0/aws-switch/compare/v0.3.1...v0.4.0) (2026-11-12)
+
+
+### Features
+
+* **databricks:** switch Databricks profiles [no-ticket] ([#11](https://github.com/pict0/aws-switch/issues/11)) ([33697d8](https://github.com/pict0/aws-switch/commit/33697d8fb9145b604a099172af0655b5f357d474))
+
 ## [0.3.1](https://github.com/pict0/aws-switch/compare/v0.3.0...v0.3.1) (2026-10-19)
 
 
