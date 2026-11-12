@@ -42,6 +42,7 @@ _aws_switch_is_prod() {
 # headers of ~/.databrickscfg; only the header is matched, so no credential is ever read.
 _aws_switch_databricks() {
   local cfg="${DATABRICKS_CONFIG_FILE:-$HOME/.databrickscfg}" profile
+  cfg="${cfg/#\~/$HOME}"
   case "$1" in
     --pin)
       profile="$2"
@@ -63,7 +64,9 @@ _aws_switch_databricks() {
 
   profile="$1"
   [[ "$profile" =~ $_aws_switch_name_re ]] || { echo "invalid profile name: $profile" >&2; return 1; }
-  grep -qxF -- "[$profile]" "$cfg" 2>/dev/null || { echo "unknown Databricks profile: $profile" >&2; return 1; }
+  # Header lines are normalised like the app's parser does: CRLF and padding around the name.
+  tr -d '\r' < "$cfg" 2>/dev/null | sed 's/^[[:space:]]*\[[[:space:]]*/[/; s/[[:space:]]*\][[:space:]]*$/]/' \
+    | grep -qxF -- "[$profile]" || { echo "unknown Databricks profile: $profile" >&2; return 1; }
 
   if _aws_switch_is_prod "$profile"; then
     local reply
