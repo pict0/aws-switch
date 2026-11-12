@@ -28,6 +28,22 @@ struct MenuContent: View {
             }
         }
 
+        if !model.databricksProfiles.isEmpty {
+            Divider()
+            MenuSectionHeader(title: "Databricks", systemImage: "cylinder.split.1x2")
+            Menu {
+                ForEach(model.databricksProfiles) { profile in
+                    DatabricksProfileRow(model: model, profile: profile)
+                }
+            } label: {
+                Label {
+                    Text(model.databricksCurrent ?? "No profile")
+                } icon: {
+                    Image(nsImage: TierImages.marker(model.databricksCurrent.map(EnvironmentTier.classify) ?? .shared))
+                }
+            }
+        }
+
         Divider()
         // Always present, disabled when there's nothing to sign in to (HIG: disable, don't hide).
         Button(signInTitle, systemImage: "person.badge.key", action: signIn)

@@ -12,6 +12,8 @@ final class AppModel {
     private(set) var expiries: [String: Date] = [:]
     private(set) var lastError: String?
     private(set) var kube = KubeConfigSnapshot.empty
+    private(set) var databricksProfiles: [DatabricksProfile] = []
+    private(set) var databricksCurrent: String?
 
     /// Mirrors `SMAppService.mainApp.status`, which isn't observable itself.
     private var launchAtLoginState = SMAppService.mainApp.status == .enabled
@@ -23,6 +25,7 @@ final class AppModel {
     private static let recentLimit = 4
 
     private let store = ContextStore()
+    private let databricksStore = ContextStore(fileURL: DatabricksPaths.contextFile)
     private let log = SwitchLog()
     private var kubeConfigModified: Date?
     private var kubeReloading = false
@@ -60,6 +63,11 @@ final class AppModel {
         if let text = SafeFile.readString(AWSPaths.configFile) {
             update(\.profiles, to: AWSConfigParser.parse(text))
         }
+        if let text = SafeFile.readString(DatabricksPaths.configFile) {
+            update(\.databricksProfiles, to: DatabricksConfigParser.parse(text)
+                .sorted { (EnvironmentTier.classify($0.name), $0.name) < (EnvironmentTier.classify($1.name), $1.name) })
+        }
+        update(\.databricksCurrent, to: databricksStore.read())
         let previous = current
         update(\.current, to: store.read())
         update(\.expiries, to: SSOSessionStatus.expiries())
@@ -96,6 +104,25 @@ final class AppModel {
             followProfileInKube(profile.name)
         } catch {
             lastError = "Couldn't switch: \(error.localizedDescription)"
+        }
+    }
+
+    /// Databricks profiles are only ever chosen explicitly: nothing here follows the AWS profile.
+    func selectDatabricks(_ profile: DatabricksProfile) {
+        guard profile.name != databricksCurrent else { return }
+        if EnvironmentTier.classify(profile.name).requiresConfirmation, !confirm(
+            title: "Switch Databricks to production?",
+            detail: profile.name + (profile.host.map { "\n\($0)" } ?? "")
+                + "\n\nEvery terminal will follow this profile at its next prompt.",
+            action: "Switch to \(profile.name)")
+        { return }
+        do {
+            try databricksStore.write(profile.name)
+            log.record(from: databricksCurrent, to: profile.name, kind: "databricks")
+            databricksCurrent = profile.name
+            lastError = nil
+        } catch {
+            lastError = "Couldn't switch Databricks: \(error.localizedDescription)"
         }
     }
 
@@ -194,6 +221,11 @@ final class AppModel {
     subscript(isSelected context: KubeContext) -> Bool {
         get { kube.current == context.name }
         set { if newValue { selectKube(context) } }
+    }
+
+    subscript(isSelected profile: DatabricksProfile) -> Bool {
+        get { databricksCurrent == profile.name }
+        set { if newValue { selectDatabricks(profile) } }
     }
 
     /// Switch kubectl to the profile's EKS context whenever the AWS profile changes.
