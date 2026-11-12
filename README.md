@@ -22,6 +22,7 @@
 - 🖥️ **One switch, every terminal.** Pick a profile in the menu bar and every open shell picks it up at its next prompt.
 - 🚦 **Production stands out.** Profiles are grouped by environment tier, production is the only thing coloured red, and switching to it always asks first.
 - ☸️ **kubectl follows along.** Changing the AWS profile also switches to the matching EKS context.
+- 🧱 **Databricks profiles too.** Choose one from its own submenu and every terminal exports `DATABRICKS_CONFIG_PROFILE`. It's only ever chosen explicitly, never tied to the AWS profile.
 - 📌 **Pin a terminal.** Keep one shell on its own profile while the rest follow the global one.
 - 🔑 **SSO-aware.** Shows when your SSO session expires and hands sign-in to `aws sso login`.
 - 🔒 **Nothing leaves your Mac.** No network access, no credentials, no dependencies, no telemetry.
@@ -67,10 +68,14 @@ flowchart LR
     ctx -- "read at each prompt" --> hook["zsh precmd hook"]
     hook -- "export AWS_PROFILE" --> shells["every terminal"]
     app -. "kubectl config use-context" .-> kube["~/.kube/config"]
+    app -- writes --> dctx[("~/.aws/current-databricks-context")]
+    cli -- writes --> dctx
+    dctx -- "read at each prompt" --> hook
+    hook -- "export DATABRICKS_CONFIG_PROFILE" --> shells
 ```
 
 - **Next prompt, not mid-command.** A command that's already running, such as `terraform apply`, keeps the environment it started with.
-- **Every switch is logged** to `~/Library/Logs/AWSSwitch/switch.log`.
+- **Every switch is logged**, AWS, kubectl and Databricks alike, to `~/Library/Logs/AWSSwitch/switch.log`.
 
 ### Environment tiers
 
@@ -91,6 +96,14 @@ When the AWS profile changes (from the menu, or from `awsswitch` while the app i
 - Contexts can also be picked directly from the Kubernetes submenu, and production ones ask for confirmation.
 - Auto-switching can be turned off in the menu.
 
+### Databricks
+
+Profiles are the section names in `~/.databrickscfg` (or `$DATABRICKS_CONFIG_FILE`), including `DEFAULT`. The Databricks CLI and SDKs honour `DATABRICKS_CONFIG_PROFILE`, so choosing a profile from the Databricks submenu switches them in every terminal at its next prompt.
+
+- It's separate from AWS: changing the AWS profile never changes the Databricks one, and vice versa.
+- The same tier rules apply, so a `production` profile is marked red and always asks first.
+- The workspace `host` is shown beneath each profile. Nothing else in the file is read.
+
 ## Command line
 
 The shell hook adds an `awsswitch` command that writes the same context file as the app:
@@ -102,15 +115,20 @@ The shell hook adds an `awsswitch` command that writes the same context file as 
 | `awsswitch --pin <profile>` | Pins this terminal to a profile; it stops following the global one |
 | `awsswitch --unpin` | Rejoins the global context |
 | `awsswitch` | Shows the current profile and whether this terminal is pinned |
+| `awsswitch --databricks <profile>` | Switches the Databricks profile for every terminal |
+| `awsswitch --databricks --pin <profile>` | Pins this terminal to a Databricks profile |
+| `awsswitch --databricks --unpin` | Rejoins the global Databricks profile |
+| `awsswitch --databricks` | Shows the current Databricks profile and whether this terminal is pinned |
 
 ## Security model
 
 | | |
 |---|---|
-| 🌐 **No network, no credentials** | The app reads `~/.aws/config` and writes one file. SSO sign-in is handed to `aws sso login`. |
+| 🌐 **No network, no credentials** | The app reads `~/.aws/config` and `~/.databrickscfg` and writes one context file for each of AWS and Databricks. SSO sign-in is handed to `aws sso login`. |
 | 🎟️ **SSO cache** | Only `startUrl` and `expiresAt` are read. Token fields are never decoded. |
 | 🧱 **No shell injection** | The app, CLI and hook all allow-list profile names (`[A-Za-z0-9._-]`), so the context file can't inject anything into a shell. |
-| 📝 **Your config is left alone** | `~/.aws/config` and the `[default]` profile are never modified. |
+| 📝 **Your config is left alone** | `~/.aws/config` and the `[default]` profile are never modified, nor is `~/.databrickscfg`. |
+| 🧪 **Databricks secrets stay unread** | Only section names and `host` are parsed from `~/.databrickscfg`. `token`, `client_secret` and every other key are skipped, never stored, logged or shown. Names go through the same allow-list. The CLI checks a profile exists by matching its `[section]` line only. |
 | ☸️ **kubectl only via kubectl** | The app only runs `kubectl config view -o json`, which redacts credentials, and `kubectl config use-context`. It never parses or writes kubeconfig itself. |
 | 📦 **Nothing extra** | No dependencies, no auto-update, no telemetry. |
 
